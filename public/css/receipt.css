@@ -1,0 +1,93 @@
+/* public/css/receipt.css */
+body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+
+.actions {
+    margin-bottom: 20px;
+}
+
+.print-btn {
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.receipt {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #333;
+}
+
+.header h2 {
+    margin: 10px 0;
+    color: #333;
+}
+
+.logo {
+    max-width: 150px;
+    height: auto;
+}
+
+.receipt-details {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse;
+}
+
+table td {
+    padding: 8px;
+}
+
+.prescription-table {
+    border: 1px solid #ddd;
+}
+
+.prescription-table th,
+.prescription-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.payment-table td:first-child {
+    font-weight: bold;
+}
+
+.footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+}
+
+.terms {
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.note {
+    font-style: italic;
+    color: #666;
+}
+
+@media print {
+    .actions { display: none; }
+    .receipt { border: none; }
+    @page { margin: 0.5cm; }
+}

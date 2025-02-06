@@ -1,0 +1,49 @@
+<!-- public/all_clients.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OptiPlus - All Clients</title>
+    <link rel="stylesheet" href="css/all_clients.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>All Clients</h2>
+            <div class="filters">
+                <select id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="pending_collection">Pending Collection</option>
+                    <option value="collected">Collected</option>
+                    <option value="pending_job">Pending Job</option>
+                    <option value="job_complete">Job Complete</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="Search by name or reg number...">
+            </div>
+        </div>
+
+        <div class="clients-grid" id="clientsGrid">
+            <!-- Client cards will be populated here -->
+        </div>
+    </div>
+
+    <!-- Client Details Modal -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Client Details</h3>
+            <div id="clientDetails"></div>
+            <div class="status-update">
+                <select id="statusUpdate">
+                    <option value="pending_collection">Pending Collection</option>
+                    <option value="collected">Collected</option>
+                    <option value="pending_job">Pending Job</option>
+                    <option value="job_complete">Job Complete</option>
+                </select>
+                <button onclick="updateClientStatus()">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/all_clients.js"></script>
+</body>
+</html>

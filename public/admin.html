@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OptiPlus - Admin Dashboard</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>OptiPlus Admin</h2>
+            </div>
+            <ul>
+                <li class="active" data-section="overview">Overview</li>
+                <li data-section="clients">Clients</li>
+                <li data-section="sales">Sales</li>
+                <li data-section="analytics">Analytics</li>
+                <li data-section="reports">Reports</li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <header>
+                <div class="search">
+                    <input type="text" id="globalSearch" placeholder="Search clients, sales, etc...">
+                </div>
+                <div class="user-info">
+                    <span id="currentDate"></span>
+                    <span class="admin-name">Admin</span>
+                </div>
+            </header>
+
+            <!-- Overview Section -->
+            <section id="overview" class="active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Clients</h3>
+                        <div class="stat-value" id="totalClients">0</div>
+                        <div class="stat-trend">+<span id="newClientsToday">0</span> today</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending Collections</h3>
+                        <div class="stat-value" id="pendingCollections">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Monthly Revenue</h3>
+                        <div class="stat-value" id="monthlyRevenue">KES 0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending Jobs</h3>
+                        <div class="stat-value" id="pendingJobs">0</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Client Registration Trend</h3>
+                        <canvas id="registrationChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Revenue Analysis</h3>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Clients Section -->
+            <section id="clients">
+                <div class="section-header">
+                    <h2>Client Management</h2>
+                    <div class="filters">
+                        <select id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="pending_collection">Pending Collection</option>
+                            <option value="collected">Collected</option>
+                            <option value="pending_job">Pending Job</option>
+                            <option value="job_complete">Job Complete</option>
+                        </select>
+                        <input type="date" id="dateFilter">
+                    </div>
+                </div>
+                <div class="data-table" id="clientsTable"></div>
+                <div class="pagination" id="clientsPagination"></div>
+            </section>
+
+            <!-- Sales Section -->
+            <section id="sales">
+                <div class="section-header">
+                    <h2>Sales Overview</h2>
+                    <div class="filters">
+                        <input type="month" id="monthFilter">
+                        <select id="paymentFilter">
+                            <option value="">All Payments</option>
+                            <option value="cash">Cash</option>
+                            <option value="mpesa">M-Pesa</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="bank">Bank Transfer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="data-table" id="salesTable"></div>
+                <div class="pagination" id="salesPagination"></div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Age Distribution</h3>
+                        <canvas id="ageChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Popular Brands</h3>
+                        <canvas id="brandsChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Payment Methods</h3>
+                        <canvas id="paymentChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Customer Demographics</h3>
+                        <canvas id="demographicsChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports">
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h3>Daily Sales Report</h3>
+                        <button onclick="generateReport('daily')">Generate</button>
+                    </div>
+                    <div class="report-card">
+                        <h3>Monthly Revenue Report</h3>
+                        <button onclick="generateReport('monthly')">Generate</button>
+                    </div>
+                    <div class="report-card">
+                        <h3>Client Demographics Report</h3>
+                        <button onclick="generateReport('demographics')">Generate</button>
+                    </div>
+                    <div class="report-card">
+                        <h3>Inventory Status Report</h3>
+                        <button onclick="generateReport('inventory')">Generate</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/admin.js"></script>
+</body>
+</html>
