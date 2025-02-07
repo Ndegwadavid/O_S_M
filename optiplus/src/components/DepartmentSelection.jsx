@@ -1,69 +1,70 @@
+// src/components/DepartmentSelection.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserIcon, BeakerIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { 
+  FaUserAlt, 
+  FaMicroscope, 
+  FaChartBar 
+} from 'react-icons/fa';
 
 const DepartmentSelection = () => {
   const navigate = useNavigate();
 
   const departments = [
     {
+      id: 'reception',
       name: 'Reception',
-      description: 'Register clients and process sales',
-      icon: UserIcon,
+      description: 'Register new clients and process sales',
+      icon: FaUserAlt,
       path: '/login/reception',
       color: 'bg-blue-500'
     },
     {
+      id: 'examination',
       name: 'Examination',
-      description: 'Process eye examinations',
-      icon: BeakerIcon,
+      description: 'Conduct eye examinations',
+      icon: FaMicroscope,
       path: '/login/examination',
       color: 'bg-green-500'
     },
     {
+      id: 'admin',
       name: 'Admin',
-      description: 'View reports and manage system',
-      icon: ChartBarIcon,
+      description: 'Monitor operations and view analytics',
+      icon: FaChartBar,
       path: '/login/admin',
       color: 'bg-purple-500'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-center text-3xl font-extrabold text-indigo-600">
-          OptiPlus
-        </h1>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Select Department
-        </h2>
-      </div>
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-indigo-600">OptiPlus</h1>
+          <p className="mt-2 text-lg text-gray-600">Optical Shop Management System</p>
+        </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <div className="space-y-6">
-            {departments.map((dept) => (
-              <button
-                key={dept.name}
-                onClick={() => navigate(dept.path)}
-                className="w-full flex items-center justify-between px-4 py-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                <div className="flex items-center">
-                  <div className={`${dept.color} p-2 rounded-lg`}>
-                    <dept.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="ml-4 text-left">
-                    <p className="text-sm font-medium text-gray-900">{dept.name}</p>
-                    <p className="text-sm text-gray-500">{dept.description}</p>
-                  </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {departments.map((dept) => (
+            <button
+              key={dept.id}
+              onClick={() => navigate(dept.path)}
+              className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className={`${dept.color} p-3 rounded-full`}>
+                  <dept.icon className="h-6 w-6 text-white" />
                 </div>
-                <svg className="ml-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-            ))}
-          </div>
+                <h3 className="mt-4 text-lg font-medium text-gray-900">
+                  {dept.name}
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  {dept.description}
+                </p>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </div>

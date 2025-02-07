@@ -1,7 +1,8 @@
+// src/components/reception/PendingClients.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ClockIcon, UserIcon } from '@heroicons/react/outline';
+import { FaClock, FaCheckCircle, FaUser } from 'react-icons/fa';
 
 const PendingClients = () => {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ const PendingClients = () => {
       {/* Waiting for Examination */}
       <div>
         <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-          <ClockIcon className="h-5 w-5 text-yellow-500 mr-2" />
+          <FaClock className="h-5 w-5 text-yellow-500 mr-2" />
           Waiting for Examination
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -64,13 +65,18 @@ const PendingClients = () => {
               </div>
             </div>
           ))}
+          {clients.waiting.length === 0 && (
+            <div className="col-span-full text-center py-4 bg-gray-50 rounded-lg">
+              <p className="text-gray-500">No clients waiting for examination</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Ready for Sales */}
       <div>
         <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-          <UserIcon className="h-5 w-5 text-green-500 mr-2" />
+          <FaCheckCircle className="h-5 w-5 text-green-500 mr-2" />
           Ready for Sales
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -101,6 +107,39 @@ const PendingClients = () => {
               </button>
             </div>
           ))}
+          {clients.examined.length === 0 && (
+            <div className="col-span-full text-center py-4 bg-gray-50 rounded-lg">
+              <p className="text-gray-500">No clients ready for sales</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center">
+            <FaUser className="h-5 w-5 text-blue-500 mr-2" />
+            <span className="text-sm text-gray-600">
+              Total Waiting: {clients.waiting.length}
+            </span>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center">
+            <FaCheckCircle className="h-5 w-5 text-green-500 mr-2" />
+            <span className="text-sm text-gray-600">
+              Ready for Sales: {clients.examined.length}
+            </span>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center">
+            <FaClock className="h-5 w-5 text-yellow-500 mr-2" />
+            <span className="text-sm text-gray-600">
+              Average Wait Time: ~20 min
+            </span>
+          </div>
         </div>
       </div>
     </div>

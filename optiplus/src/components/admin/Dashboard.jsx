@@ -1,24 +1,23 @@
+// src/components/admin/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  UsersIcon,
-  ChartBarIcon,
-  DocumentReportIcon,
-  CashIcon,
-  UserGroupIcon,
-  ClockIcon
-} from '@heroicons/react/outline';
 import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+  FaMoneyBillWave,
+  FaUsers,
+  FaChartBar,
+  FaClock
+} from 'react-icons/fa';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   Legend,
-  ResponsiveContainer 
+  ResponsiveContainer
 } from 'recharts';
 import axios from 'axios';
 
@@ -59,28 +58,28 @@ const Dashboard = () => {
     {
       name: 'Total Clients',
       value: stats.totalClients,
-      icon: UsersIcon,
+      icon: FaUsers,
       color: 'bg-blue-500',
       route: '/admin/clients'
     },
     {
-      name: 'Today\'s Clients',
+      name: "Today's Clients",
       value: stats.todayClients,
-      icon: UserGroupIcon,
+      icon: FaUsers,
       color: 'bg-green-500',
       route: '/admin/clients'
     },
     {
       name: 'Pending Examinations',
       value: stats.pendingExaminations,
-      icon: ClockIcon,
+      icon: FaClock,
       color: 'bg-yellow-500',
       route: '/admin/clients'
     },
     {
       name: 'Completed Sales',
       value: stats.completedSales,
-      icon: CashIcon,
+      icon: FaMoneyBillWave,
       color: 'bg-purple-500',
       route: '/admin/reports'
     }
@@ -132,7 +131,7 @@ const Dashboard = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Trend */}
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Sales Trend</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -149,7 +148,7 @@ const Dashboard = () => {
         </div>
 
         {/* Client Registration Trend */}
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Client Registrations</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
