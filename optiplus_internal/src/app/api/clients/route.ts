@@ -4,22 +4,28 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const firstName = url.searchParams.get("firstName");
   const lastName = url.searchParams.get("lastName");
+  const id = url.searchParams.get("id");
 
   try {
-    let query = "SELECT id, firstName, lastName, registrationNumber, phoneNumber, created_at FROM clients";
+    let query = "SELECT * FROM clients";
     const params: any[] = [];
 
-    if (firstName || lastName) {
+    if (id) {
+      query += " WHERE id = ?";
+      params.push(id);
+    } else if (firstName || lastName) {
       query += " WHERE";
+      let conditions = [];
       if (firstName) {
-        query += " (firstName LIKE ? OR lastName LIKE ?)";
+        conditions.push("firstName LIKE ?");
+        conditions.push("lastName LIKE ?");
         params.push(`%${firstName}%`, `%${firstName}%`);
       }
       if (lastName) {
-        if (firstName) query += " OR";
-        query += " lastName LIKE ?";
+        conditions.push("lastName LIKE ?");
         params.push(`%${lastName}%`);
       }
+      query += " " + conditions.join(" OR ");
     }
 
     query += " ORDER BY created_at DESC";
@@ -47,7 +53,7 @@ export async function POST(req: Request) {
 
     // Insert the new client
     const [result] = await pool.query(
-      "INSERT INTO clients (firstName, lastName, dateOfBirth, phoneNumber, emailAddress, areaOfResidence, previousRx, servedBy, registrationNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO clients (firstName, lastName, dateOfBirth, phoneNumber, emailAddress, areaOfResidence, previousRx, servedBy, registrationNumber, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
       [
         clientData.firstName,
         clientData.lastName,
@@ -61,7 +67,11 @@ export async function POST(req: Request) {
       ]
     );
 
-    return new Response(JSON.stringify({ registrationNumber, id: (result as any).insertId }), { status: 200 });
+    return new Response(JSON.stringify({ 
+      registrationNumber, 
+      id: (result as any).insertId, 
+      message: "Client registered successfully" 
+    }), { status: 200 });
   } catch (error) {
     console.error("Error registering client:", error);
     return new Response(JSON.stringify({ error: "Failed to save client" }), { status: 500 });
