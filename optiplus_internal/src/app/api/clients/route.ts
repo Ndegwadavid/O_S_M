@@ -19,7 +19,7 @@ export async function POST(req: Request) {
         clientData.lastName,
         clientData.dateOfBirth,
         clientData.phoneNumber,
-        clientData.emailAddress || null, // Handle optional fields
+        clientData.emailAddress || null,
         clientData.areaOfResidence,
         clientData.previousRx || null,
         clientData.servedBy,
@@ -31,5 +31,15 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Error registering client:", error);
     return new Response(JSON.stringify({ error: "Failed to save client" }), { status: 500 });
+  }
+}
+
+export async function GET() {
+  try {
+    const [rows] = await pool.query("SELECT id, firstName, lastName, registrationNumber, phoneNumber, created_at FROM clients ORDER BY created_at DESC");
+    return new Response(JSON.stringify(rows), { status: 200 });
+  } catch (error) {
+    console.error("Error fetching clients:", error);
+    return new Response(JSON.stringify({ error: "Failed to fetch clients" }), { status: 500 });
   }
 }
