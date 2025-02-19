@@ -1,64 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
-import { generateRegistrationNumber } from "@/lib/utils";
-import { getServerSession } from "next-auth/next";
+import pool from "@/lib/db";
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession();
-  
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  
+export async function POST(req: Request) {
+  const clientData = await req.json();
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+
   try {
-    const {
-      firstName,
-      lastName,
-      dateOfBirth,
-      phoneNumber,
-      emailAddress,
-      areaOfResidence,
-      previousRx,
-      servedBy,
-    } = await req.json();
-    
-    // Insert into MySQL database
-    const result = await query(
-      `INSERT INTO clients 
-       (first_name, last_name, date_of_birth, phone_number, email_address, 
-        area_of_residence, previous_rx, served_by, created_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+    const [lastRows] = await pool.query("SELECT MAX(id) as lastId FROM clients");
+    const lastId = (lastRows as any)[0].lastId || 0;
+    const newClientId = lastId + 1;
+    const registrationNumber = `M/${year}/${month}/${newClientId}`;
+
+    const [result] = await pool.query(
+      "INSERT INTO clients (firstName, lastName, dateOfBirth, phoneNumber, emailAddress, areaOfResidence, previousRx, servedBy, registrationNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
-        firstName,
-        lastName,
-        dateOfBirth,
-        phoneNumber,
-        emailAddress || null,
-        areaOfResidence,
-        previousRx || null,
-        servedBy,
+        clientData.firstName,
+        clientData.lastName,
+        clientData.dateOfBirth,
+        clientData.phoneNumber,
+        clientData.emailAddress || null, // Handle optional fields
+        clientData.areaOfResidence,
+        clientData.previousRx || null,
+        clientData.servedBy,
+        registrationNumber,
       ]
-    ) as any;
-    
-    const clientId = result.insertId;
-    const registrationNumber = generateRegistrationNumber(clientId);
-    
-    // Update the registration number
-    await query(
-      "UPDATE clients SET registration_number = ? WHERE id = ?",
-      [registrationNumber, clientId]
     );
-    
-    return NextResponse.json({ 
-      success: true,
-      registrationNumber,
-      clientId
-    });
+
+    return new Response(JSON.stringify({ registrationNumber, id: (result as any).insertId }), { status: 200 });
   } catch (error) {
     console.error("Error registering client:", error);
-    return NextResponse.json(
-      { error: "Failed to register client" },
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: "Failed to save client" }), { status: 500 });
   }
 }
