@@ -51,6 +51,7 @@ export async function GET(req: Request) {
   try {
     let query = "SELECT * FROM sales_orders WHERE client_id = ?";
     const [rows] = await pool.query(query, [clientId]);
+    console.log("Sales orders fetched:", rows); // Debug log
     return new Response(JSON.stringify(rows), { status: 200 });
   } catch (error) {
     console.error("Error fetching sales orders:", error);

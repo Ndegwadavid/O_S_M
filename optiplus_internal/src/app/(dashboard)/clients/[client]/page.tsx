@@ -42,24 +42,27 @@ interface Examination {
 }
 
 interface Sale {
-  framesBrand?: string;
-  framesModel?: string;
-  framesColor?: string;
-  framesQuantity?: number;
-  framesAmount?: number;
-  lensesBrand?: string;
-  lensesModel?: string;
-  lensesColor?: string;
-  lensesQuantity?: number;
-  lensesAmount?: number;
-  totalAmount?: number;
-  advancePaid?: number;
+  id: number;
+  client_id: number;
+  registration_number: string;
+  frames_brand?: string;
+  frames_model?: string;
+  frames_color?: string;
+  frames_quantity?: number;
+  frames_amount?: number;
+  lenses_brand?: string;
+  lenses_model?: string;
+  lenses_color?: string;
+  lenses_quantity?: number;
+  lenses_amount?: number;
+  total_amount?: number;
+  advance_paid?: number;
   balance?: number;
-  fittingInstructions?: string;
-  orderBookedBy?: string;
-  deliveryDate?: string;
-  referenceNumber?: string;
-  collectionStatus?: "Pending Collection" | "Collected";
+  fitting_instructions?: string;
+  order_booked_by?: string;
+  delivery_date?: string;
+  reference_number?: string;
+  collection_status?: "Pending Collection" | "Collected";
   created_at?: string;
 }
 
@@ -79,10 +82,6 @@ export default function ClientDetailsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Params from useParams:", params);
-    console.log("Client ID:", clientId);
-    console.log("Client Param from query:", clientParam);
-
     async function fetchClient() {
       if (!clientId) {
         setError("No client ID provided in URL. Expected format: /clients/[clientId]");
@@ -119,13 +118,14 @@ export default function ClientDetailsPage() {
           console.log("Sales data:", saleData);
           if (saleData.length > 0) {
             setSale(saleData[0]);
-            setNewDeliveryDate(saleData[0].deliveryDate || new Date().toISOString().split("T")[0]);
+            setNewDeliveryDate(saleData[0].delivery_date || new Date().toISOString().split("T")[0]);
           } else {
             setSale(null);
             setNewDeliveryDate(new Date().toISOString().split("T")[0]);
           }
         } else {
-          console.warn("No sales data found for client:", clientId);
+          console.error("Failed to fetch sales data:", await saleResponse.text());
+          setSale(null);
         }
       } catch (err) {
         console.error("Error fetching client data:", err);
@@ -143,12 +143,12 @@ export default function ClientDetailsPage() {
       const response = await fetch(`/api/sales-orders/${clientId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ collectionStatus: newStatus }),
+        body: JSON.stringify({ collection_status: newStatus }), // Match database field
       });
 
       if (!response.ok) throw new Error("Failed to update collection status");
 
-      setSale(prev => (prev ? { ...prev, collectionStatus: newStatus } : null));
+      setSale(prev => (prev ? { ...prev, collection_status: newStatus } : null));
       setSuccessMessage(`Collection status updated to ${newStatus}.`);
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
@@ -192,12 +192,12 @@ export default function ClientDetailsPage() {
       const response = await fetch(`/api/sales-orders/${clientId}/balance`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ deliveryDate: newDeliveryDate }),
+        body: JSON.stringify({ delivery_date: newDeliveryDate }),
       });
 
       if (!response.ok) throw new Error("Failed to update delivery date");
 
-      setSale(prev => (prev ? { ...prev, deliveryDate: newDeliveryDate } : null));
+      setSale(prev => (prev ? { ...prev, delivery_date: newDeliveryDate } : null));
       setSuccessMessage("Delivery date updated successfully.");
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
@@ -211,7 +211,7 @@ export default function ClientDetailsPage() {
   const history = [
     { type: "Registration", date: client?.created_at || "", details: `Registered by ${client?.servedBy || "Unknown"}` },
     ...(examination?.created_at ? [{ type: "Examination", date: examination.created_at, details: `Examined by ${examination.examined_by || "Unknown"}` }] : []),
-    ...(sale?.created_at ? [{ type: "Sale", date: sale.created_at, details: `Ref: ${sale.referenceNumber || "Not assigned"}, Status: ${sale.collectionStatus || "Pending"}` }] : []),
+    ...(sale?.created_at ? [{ type: "Sale", date: sale.created_at, details: `Ref: ${sale.reference_number || "Not assigned"}, Status: ${sale.collection_status || "Pending"}` }] : []),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   if (status === "loading") return <div className="p-6 text-center">Loading...</div>;
@@ -291,32 +291,32 @@ export default function ClientDetailsPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Sales Order Details</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <p className="text-lg text-green-600">
-                  <strong>Frames:</strong> {sale.framesBrand || "Not specified"} ({sale.framesModel || "Not specified"})
+                  <strong>Frames:</strong> {sale.frames_brand || "Not specified"} ({sale.frames_model || "Not specified"})
                 </p>
-                <p className="text-lg text-green-600"><strong>Frame Color:</strong> {sale.framesColor || "Not specified"}</p>
-                <p className="text-lg text-green-600"><strong>Frame Quantity:</strong> {sale.framesQuantity || "Not specified"}</p>
-                <p className="text-lg text-green-600"><strong>Frame Amount (KSh):</strong> {sale.framesAmount || 0}</p>
+                <p className="text-lg text-green-600"><strong>Frame Color:</strong> {sale.frames_color || "Not specified"}</p>
+                <p className="text-lg text-green-600"><strong>Frame Quantity:</strong> {sale.frames_quantity || "Not specified"}</p>
+                <p className="text-lg text-green-600"><strong>Frame Amount (KSh):</strong> {sale.frames_amount || 0}</p>
                 <p className="text-lg text-green-600">
-                  <strong>Lenses:</strong> {sale.lensesBrand || "Not specified"} ({sale.lensesModel || "Not specified"})
+                  <strong>Lenses:</strong> {sale.lenses_brand || "Not specified"} ({sale.lenses_model || "Not specified"})
                 </p>
-                <p className="text-lg text-green-600"><strong>Lens Color:</strong> {sale.lensesColor || "Not specified"}</p>
-                <p className="text-lg text-green-600"><strong>Lens Quantity:</strong> {sale.lensesQuantity || "Not specified"}</p>
-                <p className="text-lg text-green-600"><strong>Lens Amount (KSh):</strong> {sale.lensesAmount || 0}</p>
+                <p className="text-lg text-green-600"><strong>Lens Color:</strong> {sale.lenses_color || "Not specified"}</p>
+                <p className="text-lg text-green-600"><strong>Lens Quantity:</strong> {sale.lenses_quantity || "Not specified"}</p>
+                <p className="text-lg text-green-600"><strong>Lens Amount (KSh):</strong> {sale.lenses_amount || 0}</p>
                 <p className="text-lg text-gray-700">
-                  <strong>Total Amount (KSh):</strong> {sale.totalAmount || 0} - Cost of frames and lenses combined
+                  <strong>Total Amount (KSh):</strong> {sale.total_amount || 0} - Cost of frames and lenses combined
                 </p>
                 <p className="text-lg text-gray-700">
-                  <strong>Advance Paid (KSh):</strong> {sale.advancePaid || 0} - Amount paid upfront
+                  <strong>Advance Paid (KSh):</strong> {sale.advance_paid || 0} - Amount paid upfront
                 </p>
                 <p className="text-lg text-gray-700">
                   <strong>Balance (KSh):</strong> {sale.balance || 0} - Remaining amount to be paid
                 </p>
-                <p className="text-lg text-gray-700"><strong>Fitting Instructions:</strong> {sale.fittingInstructions || "Not specified"}</p>
-                <p className="text-lg text-gray-700"><strong>Order Booked By:</strong> {sale.orderBookedBy || "Unknown"}</p>
+                <p className="text-lg text-gray-700"><strong>Fitting Instructions:</strong> {sale.fitting_instructions || "Not specified"}</p>
+                <p className="text-lg text-gray-700"><strong>Order Booked By:</strong> {sale.order_booked_by || "Unknown"}</p>
                 <p className="text-lg text-gray-700">
-                  <strong>Delivery Date:</strong> {sale.deliveryDate ? new Date(sale.deliveryDate).toLocaleDateString() : "Not set"}
+                  <strong>Delivery Date:</strong> {sale.delivery_date ? new Date(sale.delivery_date).toLocaleDateString() : "Not set"}
                 </p>
-                <p className="text-lg text-gray-700"><strong>Reference Number:</strong> {sale.referenceNumber || "Not assigned"}</p>
+                <p className="text-lg text-gray-700"><strong>Reference Number:</strong> {sale.reference_number || "Not assigned"}</p>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Date - Expected delivery date for order</label>
@@ -337,13 +337,13 @@ export default function ClientDetailsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Collection Status</label>
-                  {sale.collectionStatus === "Collected" ? (
+                  {sale.collection_status === "Collected" ? (
                     <span className="inline-block px-4 py-2 bg-green-200 text-green-800 rounded-full text-lg font-medium">
                       Collected
                     </span>
                   ) : (
                     <select
-                      value={sale.collectionStatus || "Pending Collection"}
+                      value={sale.collection_status || "Pending Collection"}
                       onChange={(e) => handleUpdateCollectionStatus(e.target.value as "Pending Collection" | "Collected")}
                       className="w-full p-4 border border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/50 shadow-md"
                     >
