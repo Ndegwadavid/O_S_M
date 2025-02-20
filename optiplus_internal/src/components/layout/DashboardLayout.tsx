@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { signOut } from "next-auth/react";
-import Logo from "@/components/ui/Logo";
 import { useSession } from "next-auth/react";
+
+// Replace the Logo import with direct Image component usage
+// import Logo from "@/components/ui/Logo";
 
 interface NavItemProps {
   href: string;
@@ -18,14 +21,10 @@ function NavItem({ href, icon, label, active }: NavItemProps) {
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 ${
-        active
-          ? "bg-primary-100 text-primary-700"
-          : "text-gray-600 hover:bg-gray-100"
-      }`}
+      className={`nav-item ${active ? "nav-item-active" : "nav-item-inactive"}`}
     >
       <div className="w-5 h-5">{icon}</div>
-      <span className="hidden md:inline">{label}</span> {/* Hide label on mobile */}
+      <span className="hidden md:inline font-medium">{label}</span>
     </Link>
   );
 }
@@ -36,11 +35,45 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [expanded, setExpanded] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
-  if (status === "loading") return <div>Loading...</div>;
-  if (status === "unauthenticated") return <div>Please log in to access the dashboard.</div>;
+  // Handle scroll effect for header
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="glass-card p-8 animate-pulse flex flex-col items-center">
+          <div className="w-16 h-16 rounded-full bg-primary-200 mb-4"></div>
+          <div className="h-4 w-32 bg-primary-100 rounded mb-2"></div>
+          <div className="h-3 w-24 bg-primary-50 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (status === "unauthenticated") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="glass-card p-8 max-w-md animate-fadeIn">
+          <h2 className="text-2xl font-bold text-primary-700 mb-4">Access Required</h2>
+          <p className="text-gray-600 mb-6">Please log in to access the OptiPlus dashboard.</p>
+          <Link href="/staff-login" className="primary-button inline-block">
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const navItems = [
     {
@@ -95,28 +128,52 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setExpanded(!expanded);
   };
 
+  const activeSection = navItems.find(item => pathname === item.href)?.label || "Dashboard";
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 bg-fixed">
       {/* Sidebar */}
       <aside
-        className={`fixed z-10 top-0 left-0 h-full bg-white shadow-md transition-all duration-300 ${
+        className={`fixed z-20 top-0 left-0 h-full transition-all duration-300 ${
           expanded ? "w-64" : "w-16"
-        } md:w-64 md:block`}
+        } md:w-64 animate-fadeIn`}
       >
-        <div className="flex flex-col h-full">
-          {/* Logo Area */}
-          <div className={`p-4 border-b ${expanded ? "text-left" : "text-center"}`}>
-            <Logo withText={expanded} width={expanded ? 40 : 30} height={expanded ? 40 : 30} />
+        <div className="flex flex-col h-full glass-card rounded-r-xl overflow-hidden">
+          {/* Logo Area - Updated to use Image from public folder */}
+          <div className={`p-4 border-b border-white/10 backdrop-blur-md flex ${expanded ? "justify-start" : "justify-center"}`}>
+            <div className="relative">
+              {expanded ? (
+                <div className="flex items-center">
+                  <Image 
+                    src="/logo.png" 
+                    alt="OptiPlus Logo" 
+                    width={40} 
+                    height={40} 
+                    className="object-contain"
+                  />
+                  <span className="ml-2 text-lg font-semibold text-primary-700">OptiPlus</span>
+                </div>
+              ) : (
+                <Image 
+                  src="/logo.png" 
+                  alt="OptiPlus Logo" 
+                  width={30} 
+                  height={30} 
+                  className="object-contain"
+                />
+              )}
+            </div>
           </div>
 
           {/* Toggle Button */}
           <button
             onClick={handleToggleSidebar}
-            className="absolute -right-4 top-12 bg-white rounded-full p-1 shadow-md hover:bg-gray-100 transition-colors md:hidden"
+            className="absolute -right-3 top-12 glass rounded-full p-1.5 hover:bg-white/30 transition-all md:hidden z-30"
+            aria-label="Toggle sidebar"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`h-6 w-6 text-gray-500 transition-transform duration-300 ${expanded ? "rotate-0" : "rotate-180"}`}
+              className={`h-5 w-5 text-primary-600 transition-transform duration-300 ${expanded ? "rotate-0" : "rotate-180"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -131,8 +188,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </button>
 
           {/* Navigation */}
-          <nav className="flex-1 py-4 px-2 overflow-y-auto">
-            <div className="space-y-1">
+          <nav className="flex-1 py-6 px-3 overflow-y-auto backdrop-blur-sm bg-white/5">
+            <div className="space-y-2">
               {navItems.map((item) => (
                 <NavItem
                   key={item.href}
@@ -146,16 +203,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-white/10 backdrop-blur-sm bg-white/5">
             <button
               onClick={() => signOut({ callbackUrl: "/staff-login" })}
-              className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 w-full text-left text-red-600 rounded-xl
+                        hover:bg-red-50/30 hover:backdrop-blur-sm transition-all duration-200"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V7.414l-4-4H3zm9 2.414L15.414 9H12V5.414z" clipRule="evenodd" />
                 <path d="M3 7.5a.5.5 0 01.5-.5h7a.5.5 0 010 1h-7a.5.5 0 01-.5-.5zm0 4a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3a.5.5 0 01-.5-.5z" />
               </svg>
-              {expanded && "Sign Out"}
+              {expanded && <span className="font-medium">Sign Out</span>}
             </button>
           </div>
         </div>
@@ -165,28 +223,32 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <main
         className={`flex-1 transition-all duration-300 ${
           expanded ? "ml-64" : "ml-16"
-        } md:ml-64`}
+        } md:ml-64 relative`}
       >
         {/* Top Header */}
-        <header className="bg-white shadow-sm border-b">
+        <header className={`sticky top-0 z-10 transition-all duration-300 ${
+          scrolled ? "backdrop-blur-glass shadow-glass" : "bg-transparent"
+        }`}>
           <div className="flex justify-between items-center px-6 py-4">
-            <h1 className="text-2xl font-semibold text-gray-700">
-              OptiPlus Internal
+            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-primary-500">
+              {activeSection} • OptiPlus
             </h1>
             <div className="flex items-center gap-4">
               <div className="text-right mr-2">
-                <div className="text-sm font-medium text-gray-900">Staff User</div>
-                <div className="text-xs text-gray-500">staff@optiplus.com</div>
+                <div className="text-sm font-medium text-gray-900">{session?.user?.name || "Staff User"}</div>
+                <div className="text-xs text-gray-500">{session?.user?.email || "staff@optiplus.com"}</div>
               </div>
-              <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold">
-                SU
+              <div className="h-10 w-10 rounded-full glass flex items-center justify-center text-primary-700 font-bold shadow-sm">
+                {session?.user?.name?.[0].toUpperCase() || "S"}
               </div>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <div className="p-6">{children}</div>
+        <div className="p-6 animate-slideIn">
+          {children}
+        </div>
       </main>
     </div>
   );
