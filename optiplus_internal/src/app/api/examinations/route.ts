@@ -1,11 +1,11 @@
 import pool from "@/lib/db";
 
 export async function POST(req: Request) {
-  const { clientId, prescription, clinicalHistory, registrationNumber } = await req.json();
+  const { clientId, prescription, clinicalHistory, registrationNumber, examinedBy } = await req.json();
 
   try {
     const [result] = await pool.query(
-      "INSERT INTO examinations (client_id, registration_number, right_sphere, right_cylinder, right_axis, right_add, right_va, right_ipd, left_sphere, left_cylinder, left_axis, left_add, left_va, left_ipd, clinical_history, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Completed Examination', NOW())",
+      "INSERT INTO examinations (client_id, registration_number, right_sphere, right_cylinder, right_axis, right_add, right_va, right_ipd, left_sphere, left_cylinder, left_axis, left_add, left_va, left_ipd, clinical_history, status, examined_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Completed Examination', ?, NOW())",
       [
         clientId,
         registrationNumber,
@@ -22,11 +22,11 @@ export async function POST(req: Request) {
         prescription.leftVA || null,
         prescription.leftIPD || null,
         clinicalHistory || null,
+        examinedBy || null, // New field
       ]
     );
 
-    // Optionally update the clients table to reflect status, but we'll handle it via examinations
-    return new Response(JSON.stringify({ message: "Examination saved successfully" }), { status: 200 });
+    return new Response(JSON.stringify({ message: "Examination saved successfully", id: (result as any).insertId }), { status: 200 });
   } catch (error) {
     console.error("Error saving examination:", error);
     return new Response(JSON.stringify({ error: "Failed to save examination" }), { status: 500 });

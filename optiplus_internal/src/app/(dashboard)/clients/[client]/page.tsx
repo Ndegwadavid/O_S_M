@@ -12,29 +12,33 @@ interface Client {
   registrationNumber: string;
   phoneNumber: string;
   dateOfBirth: string;
+  emailAddress: string | null;
   areaOfResidence: string;
+  previousRx: string | null;
   servedBy: string;
   created_at: string;
 }
 
 interface Examination {
-  prescription?: {
-    rightSphere?: string;
-    rightCylinder?: string;
-    rightAxis?: string;
-    rightAdd?: string;
-    rightVA?: string;
-    rightIPD?: string;
-    leftSphere?: string;
-    leftCylinder?: string;
-    leftAxis?: string;
-    leftAdd?: string;
-    leftVA?: string;
-    leftIPD?: string;
-  };
-  clinicalHistory?: string;
-  status?: "Pending Examination" | "Completed Examination";
-  created_at?: string;
+  id: number;
+  client_id: number;
+  registration_number: string;
+  right_sphere?: string | null;
+  right_cylinder?: string | null;
+  right_axis?: string | null;
+  right_add?: string | null;
+  right_va?: string | null;
+  right_ipd?: string | null;
+  left_sphere?: string | null;
+  left_cylinder?: string | null;
+  left_axis?: string | null;
+  left_add?: string | null;
+  left_va?: string | null;
+  left_ipd?: string | null;
+  clinical_history?: string | null;
+  examined_by?: string | null;
+  status: "Pending Examination" | "Completed Examination";
+  created_at: string;
 }
 
 interface Sale {
@@ -63,7 +67,7 @@ export default function ClientDetailsPage() {
   const { data: session, status } = useSession();
   const params = useParams();
   const searchParams = useSearchParams();
-  const clientId = params?.client as string | undefined; // Ensure params is safely accessed
+  const clientId = params?.client as string | undefined;
   const clientParam = searchParams.get("client");
   const [client, setClient] = useState<Client | null>(null);
   const [examination, setExamination] = useState<Examination | null>(null);
@@ -75,9 +79,9 @@ export default function ClientDetailsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Params from useParams:", params); // Debug: Log params object
-    console.log("Client ID:", clientId); // Debug: Log clientId
-    console.log("Client Param from query:", clientParam); // Debug: Log query param
+    console.log("Params from useParams:", params);
+    console.log("Client ID:", clientId);
+    console.log("Client Param from query:", clientParam);
 
     async function fetchClient() {
       if (!clientId) {
@@ -86,14 +90,14 @@ export default function ClientDetailsPage() {
       }
 
       try {
-        console.log(`Fetching client with ID: ${clientId}`); // Debug log
+        console.log(`Fetching client with ID: ${clientId}`);
         const clientResponse = await fetch(`/api/clients?id=${clientId}`);
         if (!clientResponse.ok) {
           const errorText = await clientResponse.text();
           throw new Error(`Failed to fetch client: ${clientResponse.status} - ${errorText}`);
         }
         const clientData = await clientResponse.json();
-        console.log("Client data response:", clientData); // Debug log
+        console.log("Client data response:", clientData);
         if (clientData.length === 0) {
           setError(`Client with ID ${clientId} not found in database`);
           return;
@@ -103,7 +107,7 @@ export default function ClientDetailsPage() {
         const examResponse = await fetch(`/api/examinations?clientId=${clientId}`);
         if (examResponse.ok) {
           const examData = await examResponse.json();
-          console.log("Examination data:", examData); // Debug log
+          console.log("Examination data:", examData);
           setExamination(examData.length > 0 ? examData[0] : null);
         } else {
           console.warn("No examination data found for client:", clientId);
@@ -112,7 +116,7 @@ export default function ClientDetailsPage() {
         const saleResponse = await fetch(`/api/sales-orders?clientId=${clientId}`);
         if (saleResponse.ok) {
           const saleData = await saleResponse.json();
-          console.log("Sales data:", saleData); // Debug log
+          console.log("Sales data:", saleData);
           if (saleData.length > 0) {
             setSale(saleData[0]);
             setNewDeliveryDate(saleData[0].deliveryDate || new Date().toISOString().split("T")[0]);
@@ -131,13 +135,8 @@ export default function ClientDetailsPage() {
     fetchClient();
   }, [clientId]);
 
-  if (status === "loading") return <div className="p-6 text-center">Loading...</div>;
-  if (status === "unauthenticated") return <div className="p-6 text-center">Please log in to access this page.</div>;
-  if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
-  if (!client) return <div className="p-6 text-center">Loading client data...</div>;
-
   const handleUpdateCollectionStatus = async (newStatus: "Pending Collection" | "Collected") => {
-    if (!sale) return;
+    if (!sale || !clientId) return;
 
     setIsSaving(true);
     try {
@@ -149,7 +148,7 @@ export default function ClientDetailsPage() {
 
       if (!response.ok) throw new Error("Failed to update collection status");
 
-      setSale(prev => prev ? { ...prev, collectionStatus: newStatus } : null);
+      setSale(prev => (prev ? { ...prev, collectionStatus: newStatus } : null));
       setSuccessMessage(`Collection status updated to ${newStatus}.`);
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
@@ -161,7 +160,7 @@ export default function ClientDetailsPage() {
   };
 
   const handleSaveBalance = async () => {
-    if (newBalance === null || !sale) return;
+    if (newBalance === null || !sale || !clientId) return;
 
     setIsSaving(true);
     try {
@@ -173,7 +172,7 @@ export default function ClientDetailsPage() {
 
       if (!response.ok) throw new Error("Failed to update balance");
 
-      setSale(prev => prev ? { ...prev, balance: newBalance } : null);
+      setSale(prev => (prev ? { ...prev, balance: newBalance } : null));
       setNewBalance(null);
       setSuccessMessage("Balance updated successfully.");
       setTimeout(() => setSuccessMessage(""), 5000);
@@ -186,7 +185,7 @@ export default function ClientDetailsPage() {
   };
 
   const handleSaveDeliveryDate = async () => {
-    if (!sale || !newDeliveryDate) return;
+    if (!sale || !newDeliveryDate || !clientId) return;
 
     setIsSaving(true);
     try {
@@ -198,7 +197,7 @@ export default function ClientDetailsPage() {
 
       if (!response.ok) throw new Error("Failed to update delivery date");
 
-      setSale(prev => prev ? { ...prev, deliveryDate: newDeliveryDate } : null);
+      setSale(prev => (prev ? { ...prev, deliveryDate: newDeliveryDate } : null));
       setSuccessMessage("Delivery date updated successfully.");
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
@@ -210,10 +209,15 @@ export default function ClientDetailsPage() {
   };
 
   const history = [
-    { type: "Registration", date: client.created_at || "", details: `Registered by ${client.servedBy || "Unknown"}` },
-    ...(examination?.created_at ? [{ type: "Examination", date: examination.created_at, details: examination.status || "Completed" }] : []),
+    { type: "Registration", date: client?.created_at || "", details: `Registered by ${client?.servedBy || "Unknown"}` },
+    ...(examination?.created_at ? [{ type: "Examination", date: examination.created_at, details: `Examined by ${examination.examined_by || "Unknown"}` }] : []),
     ...(sale?.created_at ? [{ type: "Sale", date: sale.created_at, details: `Ref: ${sale.referenceNumber || "Not assigned"}, Status: ${sale.collectionStatus || "Pending"}` }] : []),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  if (status === "loading") return <div className="p-6 text-center">Loading...</div>;
+  if (status === "unauthenticated") return <div className="p-6 text-center">Please log in to access this page.</div>;
+  if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
+  if (!client) return <div className="p-6 text-center">Loading client data...</div>;
 
   return (
     <DashboardLayout>
@@ -221,33 +225,98 @@ export default function ClientDetailsPage() {
         <h1 className="text-4xl font-extrabold text-purple-800 mb-8">{client.firstName} {client.lastName} - Client Details</h1>
 
         <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-glass p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Basic Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <p className="text-lg text-gray-700"><strong>Registration No:</strong> {client.registrationNumber || "Not assigned"}</p>
-            <p className="text-lg text-gray-700"><strong>Phone:</strong> {client.phoneNumber || "Not provided"}</p>
-            <p className="text-lg text-gray-700"><strong>DOB:</strong> {client.dateOfBirth ? new Date(client.dateOfBirth).toLocaleDateString() : "Not specified"}</p>
-            <p className="text-lg text-gray-700"><strong>Area:</strong> {client.areaOfResidence || "Not specified"}</p>
-            <p className="text-lg text-gray-700"><strong>Served By:</strong> {client.servedBy || "Unknown"}</p>
+          {/* Basic Information */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Basic Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <p className="text-lg text-gray-700"><strong>Registration No:</strong> {client.registrationNumber || "Not assigned"}</p>
+              <p className="text-lg text-gray-700"><strong>Phone:</strong> {client.phoneNumber || "Not provided"}</p>
+              <p className="text-lg text-gray-700"><strong>DOB:</strong> {client.dateOfBirth ? new Date(client.dateOfBirth).toLocaleDateString() : "Not specified"}</p>
+              <p className="text-lg text-gray-700"><strong>Email:</strong> {client.emailAddress || "Not provided"}</p>
+              <p className="text-lg text-gray-700"><strong>Area:</strong> {client.areaOfResidence || "Not specified"}</p>
+              <p className="text-lg text-gray-700"><strong>Previous Rx:</strong> {client.previousRx || "Not specified"}</p>
+              <p className="text-lg text-gray-700"><strong>Served By:</strong> {client.servedBy || "Unknown"}</p>
+            </div>
           </div>
 
-          {examination?.prescription && (
-            <div className="mt-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Prescription Details</h2>
-              <p className="text-lg text-indigo-600">Right Eye: SPH {examination.prescription.rightSphere || "Not specified"}, CYL {examination.prescription.rightCylinder || "Not specified"}</p>
-              <p className="text-lg text-indigo-600">Left Eye: SPH {examination.prescription.leftSphere || "Not specified"}, CYL {examination.prescription.leftCylinder || "Not specified"}</p>
+          {/* Examination Details */}
+          {examination && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Examination Details</h2>
+              <p className="text-lg text-gray-700 mb-2"><strong>Examined By:</strong> {examination.examined_by || "Unknown"}</p>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-purple-100">
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">Eye</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">SPH</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">CYL</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">Axis</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">Add</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">V/A</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">IPD</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-3 text-gray-700">Right</td>
+                      <td className="p-3 text-gray-700">{examination.right_sphere || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.right_cylinder || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.right_axis || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.right_add || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.right_va || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.right_ipd || "N/A"}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-3 text-gray-700">Left</td>
+                      <td className="p-3 text-gray-700">{examination.left_sphere || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.left_cylinder || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.left_axis || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.left_add || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.left_va || "N/A"}</td>
+                      <td className="p-3 text-gray-700">{examination.left_ipd || "N/A"}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              {examination.clinical_history && (
+                <p className="mt-2 text-lg text-gray-700"><strong>Clinical History:</strong> {examination.clinical_history}</p>
+              )}
             </div>
           )}
 
+          {/* Sales Order Details */}
           {sale ? (
-            <div className="mt-6">
+            <div className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Sales Order Details</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <p className="text-lg text-green-600">Frames: {sale.framesBrand || "Not specified"} ({sale.framesModel || "Not specified"})</p>
-                <p className="text-lg text-green-600">Lenses: {sale.lensesBrand || "Not specified"} ({sale.lensesModel || "Not specified"})</p>
-                <p className="text-lg text-gray-700">Total Amount (KSh): {sale.totalAmount || 0} - Cost of frames and lenses combined</p>
-                <p className="text-lg text-gray-700">Advance Paid (KSh): {sale.advancePaid || 0} - Amount paid upfront</p>
-                <p className="text-lg text-gray-700">Balance (KSh): {sale.balance || 0} - Remaining amount to be paid</p>
-                <p className="text-lg text-gray-700">Reference Number: {sale.referenceNumber || "Not assigned"}</p>
+                <p className="text-lg text-green-600">
+                  <strong>Frames:</strong> {sale.framesBrand || "Not specified"} ({sale.framesModel || "Not specified"})
+                </p>
+                <p className="text-lg text-green-600"><strong>Frame Color:</strong> {sale.framesColor || "Not specified"}</p>
+                <p className="text-lg text-green-600"><strong>Frame Quantity:</strong> {sale.framesQuantity || "Not specified"}</p>
+                <p className="text-lg text-green-600"><strong>Frame Amount (KSh):</strong> {sale.framesAmount || 0}</p>
+                <p className="text-lg text-green-600">
+                  <strong>Lenses:</strong> {sale.lensesBrand || "Not specified"} ({sale.lensesModel || "Not specified"})
+                </p>
+                <p className="text-lg text-green-600"><strong>Lens Color:</strong> {sale.lensesColor || "Not specified"}</p>
+                <p className="text-lg text-green-600"><strong>Lens Quantity:</strong> {sale.lensesQuantity || "Not specified"}</p>
+                <p className="text-lg text-green-600"><strong>Lens Amount (KSh):</strong> {sale.lensesAmount || 0}</p>
+                <p className="text-lg text-gray-700">
+                  <strong>Total Amount (KSh):</strong> {sale.totalAmount || 0} - Cost of frames and lenses combined
+                </p>
+                <p className="text-lg text-gray-700">
+                  <strong>Advance Paid (KSh):</strong> {sale.advancePaid || 0} - Amount paid upfront
+                </p>
+                <p className="text-lg text-gray-700">
+                  <strong>Balance (KSh):</strong> {sale.balance || 0} - Remaining amount to be paid
+                </p>
+                <p className="text-lg text-gray-700"><strong>Fitting Instructions:</strong> {sale.fittingInstructions || "Not specified"}</p>
+                <p className="text-lg text-gray-700"><strong>Order Booked By:</strong> {sale.orderBookedBy || "Unknown"}</p>
+                <p className="text-lg text-gray-700">
+                  <strong>Delivery Date:</strong> {sale.deliveryDate ? new Date(sale.deliveryDate).toLocaleDateString() : "Not set"}
+                </p>
+                <p className="text-lg text-gray-700"><strong>Reference Number:</strong> {sale.referenceNumber || "Not assigned"}</p>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Date - Expected delivery date for order</label>
@@ -268,14 +337,20 @@ export default function ClientDetailsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Collection Status</label>
-                  <select
-                    value={sale.collectionStatus || "Pending Collection"}
-                    onChange={(e) => handleUpdateCollectionStatus(e.target.value as "Pending Collection" | "Collected")}
-                    className="w-full p-4 border border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/50 shadow-md"
-                  >
-                    <option value="Pending Collection">Pending Collection</option>
-                    <option value="Collected">Collected</option>
-                  </select>
+                  {sale.collectionStatus === "Collected" ? (
+                    <span className="inline-block px-4 py-2 bg-green-200 text-green-800 rounded-full text-lg font-medium">
+                      Collected
+                    </span>
+                  ) : (
+                    <select
+                      value={sale.collectionStatus || "Pending Collection"}
+                      onChange={(e) => handleUpdateCollectionStatus(e.target.value as "Pending Collection" | "Collected")}
+                      className="w-full p-4 border border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/50 shadow-md"
+                    >
+                      <option value="Pending Collection">Pending Collection</option>
+                      <option value="Collected">Collected</option>
+                    </select>
+                  )}
                 </div>
 
                 {sale.balance && sale.balance > 0 && (
@@ -305,7 +380,8 @@ export default function ClientDetailsPage() {
             <div className="mt-6 text-gray-600">No sales order recorded yet for this client.</div>
           )}
 
-          <div className="mt-6">
+          {/* Client History */}
+          <div className="mt-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Client History</h2>
             {history.length > 0 ? (
               <ul className="list-disc pl-5 text-lg text-gray-600">

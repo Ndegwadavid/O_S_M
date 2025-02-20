@@ -11,28 +11,7 @@ interface Client {
   registrationNumber: string;
   phoneNumber: string;
   created_at: string;
-}
-
-interface Examination {
-  id: number;
-  client_id: number;
-  status: "Pending Examination" | "Completed Examination";
-  prescription: {
-    rightSphere?: string;
-    rightCylinder?: string;
-    rightAxis?: string;
-    rightAdd?: string;
-    rightVA?: string;
-    rightIPD?: string;
-    leftSphere?: string;
-    leftCylinder?: string;
-    leftAxis?: string;
-    leftAdd?: string;
-    leftVA?: string;
-    leftIPD?: string;
-  };
-  clinicalHistory?: string;
-  created_at: string;
+  hasExam?: boolean; // Added to track examination status
 }
 
 interface Prescription {
@@ -53,45 +32,48 @@ interface Prescription {
 export default function ExaminationPage() {
   const { data: session, status } = useSession();
   const [clients, setClients] = useState<Client[]>([]);
-  const [examinations, setExaminations] = useState<Record<number, Examination>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null); // Fixed: useState, not useStatus
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [prescription, setPrescription] = useState<Prescription>({});
   const [clinicalHistory, setClinicalHistory] = useState("");
+  const [examinedBy, setExaminedBy] = useState(""); // Ensure this is included
   const [successMessage, setSuccessMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchClients() {
       const clientsResponse = await fetch("/api/clients");
       if (clientsResponse.ok) {
         const clientsData = await clientsResponse.json();
         setClients(clientsData);
 
-        const exams: Record<number, Examination> = {};
+        const exams: Record<number, any> = {};
         for (const client of clientsData) {
           const examResponse = await fetch(`/api/examinations?clientId=${client.id}`);
           if (examResponse.ok) {
             const examData = await examResponse.json();
             if (examData.length > 0) {
-              exams[client.id] = examData[0]; // Latest examination
+              exams[client.id] = examData[0];
             }
           }
         }
-        setExaminations(exams);
+        setClients(clientsData.map((client: Client) => ({
+          ...client,
+          hasExam: !!exams[client.id]
+        })));
       } else {
         console.error("Failed to fetch clients:", await clientsResponse.text());
       }
     }
-    fetchData();
+    fetchClients();
   }, []);
 
   if (status === "loading") return <div>Loading...</div>;
   if (status === "unauthenticated") return <div>Please log in to access this page.</div>;
 
   const filteredClients = clients.filter(client => {
-    const hasExam = examinations[client.id];
+    const hasExam = client.hasExam;
     const matchesSearch = 
       client.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,6 +90,7 @@ export default function ExaminationPage() {
     setSelectedClient(client);
     setPrescription({});
     setClinicalHistory("");
+    setExaminedBy(session?.user?.name || ""); // Default to logged-in user
     setSuccessMessage("");
   };
 
@@ -118,6 +101,10 @@ export default function ExaminationPage() {
 
   const handleClinicalHistoryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setClinicalHistory(e.target.value || "");
+  };
+
+  const handleExaminedByChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setExaminedBy(e.target.value || "");
   };
 
   const handleSave = async () => {
@@ -133,18 +120,22 @@ export default function ExaminationPage() {
           prescription,
           clinicalHistory,
           registrationNumber: selectedClient.registrationNumber,
+          examinedBy, // Included in payload
         }),
       });
 
       if (!response.ok) throw new Error("Failed to save examination");
 
-      const newExam: Examination = await response.json();
-      setExaminations(prev => ({
-        ...prev,
-        [selectedClient.id]: newExam,
-      }));
       setSuccessMessage("Examination record saved successfully!");
       setSelectedClient(null);
+      const clientsResponse = await fetch("/api/clients");
+      if (clientsResponse.ok) {
+        const updatedClients = await clientsResponse.json();
+        setClients(updatedClients.map((client: Client) => ({
+          ...client,
+          hasExam: client.id === selectedClient.id ? true : clients.find(c => c.id === client.id)?.hasExam
+        })));
+      }
     } catch (error) {
       setSuccessMessage("Error saving examination record. Please try again.");
     } finally {
@@ -198,9 +189,7 @@ export default function ExaminationPage() {
         {/* Client Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
           {filteredClients.map(client => {
-            const exam = examinations[client.id];
-            const status = exam ? "Completed Examination" : "Pending Examination";
-            const isCompleted = !!exam;
+            const isCompleted = client.hasExam;
 
             return (
               <div
@@ -220,7 +209,7 @@ export default function ExaminationPage() {
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     isCompleted ? "bg-green-200 text-green-800" : "bg-yellow-200 text-yellow-800"
                   }`}>
-                    {status}
+                    {isCompleted ? "Completed" : "Pending"}
                   </span>
                 </div>
                 {isCompleted && (
@@ -239,50 +228,50 @@ export default function ExaminationPage() {
           )}
         </div>
 
-        {/* Examination Form (if client selected) */}
+        {/* Examination Form */}
         {selectedClient && (
           <div className="mt-8 bg-white/80 backdrop-blur-lg rounded-lg shadow-glass p-6">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Examine: {selectedClient.firstName} {selectedClient.lastName}</h2>
 
-            {/* Prescription Table */}
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-700 mb-2">New Glass Prescription</h3>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border-b border-gray-300 p-2 text-left">Eye</th>
-                    <th className="border-b border-gray-300 p-2 text-left">SPH</th>
-                    <th className="border-b border-gray-300 p-2 text-left">CYL</th>
-                    <th className="border-b border-gray-300 p-2 text-left">AXIS</th>
-                    <th className="border-b border-gray-300 p-2 text-left">ADD</th>
-                    <th className="border-b border-gray-300 p-2 text-left">V/A</th>
-                    <th className="border-b border-gray-300 p-2 text-left">IPD</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border-b border-gray-300 p-2">Right (R)</td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="rightSphere" value={prescription.rightSphere || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="rightCylinder" value={prescription.rightCylinder || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="rightAxis" value={prescription.rightAxis || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="rightAdd" value={prescription.rightAdd || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="rightVA" value={prescription.rightVA || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="rightIPD" value={prescription.rightIPD || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                  </tr>
-                  <tr>
-                    <td className="border-b border-gray-300 p-2">Left (L)</td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="leftSphere" value={prescription.leftSphere || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="leftCylinder" value={prescription.leftCylinder || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="leftAxis" value={prescription.leftAxis || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="leftAdd" value={prescription.leftAdd || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="leftVA" value={prescription.leftVA || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                    <td className="border-b border-gray-300 p-2"><input type="text" name="leftIPD" value={prescription.leftIPD || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-indigo-100">
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">Eye</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">SPH</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">CYL</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">AXIS</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">ADD</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">V/A</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-800">IPD</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-3 text-gray-700">Right (R)</td>
+                      <td className="p-3"><input type="text" name="rightSphere" value={prescription.rightSphere || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="rightCylinder" value={prescription.rightCylinder || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="rightAxis" value={prescription.rightAxis || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="rightAdd" value={prescription.rightAdd || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="rightVA" value={prescription.rightVA || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="rightIPD" value={prescription.rightIPD || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-3 text-gray-700">Left (L)</td>
+                      <td className="p-3"><input type="text" name="leftSphere" value={prescription.leftSphere || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="leftCylinder" value={prescription.leftCylinder || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="leftAxis" value={prescription.leftAxis || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="leftAdd" value={prescription.leftAdd || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="leftVA" value={prescription.leftVA || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                      <td className="p-3"><input type="text" name="leftIPD" value={prescription.leftIPD || ""} onChange={handlePrescriptionChange} className="w-full p-1 border border-gray-300 rounded" placeholder="Optional" /></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            {/* Clinical History */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">Clinical History</label>
               <textarea
@@ -294,13 +283,29 @@ export default function ExaminationPage() {
               />
             </div>
 
-            {/* Save Button */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Examined By</label>
+              <input
+                type="text"
+                value={examinedBy}
+                onChange={handleExaminedByChange}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 backdrop-blur-sm bg-white/70"
+                placeholder="Enter examiner's name"
+              />
+            </div>
+
             <button
               onClick={handleSave}
               disabled={isSaving}
               className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save Record"}
+            </button>
+            <button
+              onClick={handleClose}
+              className="ml-4 px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+            >
+              Cancel
             </button>
 
             {successMessage && (
