@@ -92,8 +92,7 @@ export default function ClientDetailsPage() {
         console.log(`Fetching client with ID: ${clientId}`);
         const clientResponse = await fetch(`/api/clients?id=${clientId}`);
         if (!clientResponse.ok) {
-          const errorText = await clientResponse.text();
-          throw new Error(`Failed to fetch client: ${clientResponse.status} - ${errorText}`);
+          throw new Error(`Failed to fetch client: ${clientResponse.status} - ${await clientResponse.text()}`);
         }
         const clientData = await clientResponse.json();
         console.log("Client data response:", clientData);
@@ -143,10 +142,13 @@ export default function ClientDetailsPage() {
       const response = await fetch(`/api/sales-orders/${clientId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ collection_status: newStatus }), // Match database field
+        body: JSON.stringify({ collection_status: newStatus }),
       });
 
-      if (!response.ok) throw new Error("Failed to update collection status");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update collection status: ${response.status} - ${errorText}`);
+      }
 
       setSale(prev => (prev ? { ...prev, collection_status: newStatus } : null));
       setSuccessMessage(`Collection status updated to ${newStatus}.`);
