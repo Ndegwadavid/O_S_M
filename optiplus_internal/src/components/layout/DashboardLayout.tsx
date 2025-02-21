@@ -1,31 +1,71 @@
 "use client";
 
-import { useState, ReactNode, useEffect } from "react";
+import { useState, ReactNode, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
-
-// Replace the Logo import with direct Image component usage
-// import Logo from "@/components/ui/Logo";
+import { 
+  Home, 
+  Clipboard, 
+  ShoppingCart, 
+  Users, 
+  Settings, 
+  LogOut, 
+  ChevronLeft, 
+  ChevronRight, 
+  Bell,
+  Search
+} from "lucide-react";
 
 interface NavItemProps {
   href: string;
   icon: ReactNode;
   label: string;
   active: boolean;
+  expanded: boolean;
 }
 
-function NavItem({ href, icon, label, active }: NavItemProps) {
+function NavItem({ href, icon, label, active, expanded }: NavItemProps) {
   return (
     <Link
       href={href}
-      className={`nav-item ${active ? "nav-item-active" : "nav-item-inactive"}`}
+      className={`group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                 ${active 
+                   ? "bg-primary-100/50 text-primary-800 shadow-sm" 
+                   : "text-gray-600 hover:bg-white/40 hover:text-primary-700"}`}
     >
-      <div className="w-5 h-5">{icon}</div>
-      <span className="hidden md:inline font-medium">{label}</span>
+      <div className="flex-shrink-0 text-current">
+        {icon}
+      </div>
+      {expanded && (
+        <span className={`font-medium transition-all duration-300 ${
+          expanded ? "opacity-100" : "opacity-0 w-0"
+        }`}>
+          {label}
+        </span>
+      )}
+      
+      {!expanded && (
+        <div className="absolute left-16 z-50 origin-left scale-0 px-3 py-2 rounded-md bg-white shadow-lg
+                      text-gray-800 font-medium whitespace-nowrap group-hover:scale-100 transition-all duration-150">
+          {label}
+        </div>
+      )}
     </Link>
+  );
+}
+
+// Divider component for sidebar sections
+function SidebarDivider({ label, expanded }: { label: string, expanded: boolean }) {
+  if (!expanded) return <div className="border-t border-gray-200/30 my-3 mx-3" />;
+  
+  return (
+    <div className="flex items-center gap-2 px-4 py-2">
+      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
+      <div className="flex-1 border-t border-gray-200/30"></div>
+    </div>
   );
 }
 
@@ -36,9 +76,23 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [expanded, setExpanded] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  const [showMobileNav, setShowMobileNav] = useState(false);
   const pathname = usePathname();
   const { data: session, status } = useSession();
-
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  
+  // Close sidebar when clicking outside (mobile)
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (showMobileNav && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setShowMobileNav(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMobileNav]);
+  
   // Handle scroll effect for header
   useEffect(() => {
     const handleScroll = () => {
@@ -47,6 +101,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  // Reset expanded state on screen resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setExpanded(false);
+      } else {
+        setExpanded(true);
+      }
+    };
+    
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   
   if (status === "loading") {
@@ -75,92 +144,89 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
-  const navItems = [
+  const mainNavItems = [
     {
       href: "/reception",
       label: "Reception",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
-          <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" />
-        </svg>
-      ),
+      icon: <Home size={20} />,
+      section: "main"
     },
     {
       href: "/examination",
       label: "Examination",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-        </svg>
-      ),
+      icon: <Clipboard size={20} />,
+      section: "main"
     },
     {
       href: "/sales-order",
       label: "Sales Order",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6zm2 2h4a1 1 0 110 2H8a1 1 0 110-2zm0 4h4a1 1 0 110 2H8a1 1 0 110-2z" />
-        </svg>
-      ),
+      icon: <ShoppingCart size={20} />,
+      section: "main"
     },
     {
       href: "/clients",
       label: "Clients",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-        </svg>
-      ),
+      icon: <Users size={20} />,
+      section: "main"
     },
+  ];
+  
+  const adminNavItems = [
     {
       href: "/admin-login",
       label: "Admin Panel",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
-        </svg>
-      ),
+      icon: <Settings size={20} />,
+      section: "admin"
     },
   ];
 
   const handleToggleSidebar = () => {
     setExpanded(!expanded);
   };
+  
+  const handleMobileNavToggle = () => {
+    setShowMobileNav(!showMobileNav);
+  };
 
-  const activeSection = navItems.find(item => pathname === item.href)?.label || "Dashboard";
+  const activeSection = [...mainNavItems, ...adminNavItems].find(item => pathname === item.href)?.label || "Dashboard";
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 bg-fixed">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 bg-fixed overflow-hidden">
+      {/* Mobile Nav Overlay */}
+      {showMobileNav && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20 lg:hidden"
+             onClick={() => setShowMobileNav(false)}></div>
+      )}
+      
       {/* Sidebar */}
       <aside
-        className={`fixed z-20 top-0 left-0 h-full transition-all duration-300 ${
-          expanded ? "w-64" : "w-16"
-        } md:w-64 animate-fadeIn`}
+        ref={sidebarRef}
+        className={`fixed z-30 top-0 left-0 h-full transition-all duration-300 ease-in-out
+                   ${expanded ? "w-64" : "w-20"} 
+                   ${showMobileNav ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                   lg:block animate-fadeIn`}
       >
-        <div className="flex flex-col h-full glass-card rounded-r-xl overflow-hidden">
-          {/* Logo Area - Updated to use Image from public folder */}
-          <div className={`p-4 border-b border-white/10 backdrop-blur-md flex ${expanded ? "justify-start" : "justify-center"}`}>
-            <div className="relative">
-              {expanded ? (
-                <div className="flex items-center">
-                  <Image 
-                    src="/logo.png" 
-                    alt="OptiPlus Logo" 
-                    width={40} 
-                    height={40} 
-                    className="object-contain"
-                  />
-                  <span className="ml-2 text-lg font-semibold text-primary-700">OptiPlus</span>
-                </div>
-              ) : (
+        <div className="flex flex-col h-full glass-card rounded-r-xl shadow-xl overflow-hidden">
+          {/* Logo Area */}
+          <div className={`p-5 border-b border-white/10 backdrop-blur-md 
+                          ${expanded ? "justify-start" : "justify-center"}
+                          flex items-center`}>
+            <div className="relative flex items-center">
+              <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg shadow-md">
                 <Image 
                   src="/logo.png" 
                   alt="OptiPlus Logo" 
-                  width={30} 
-                  height={30} 
+                  fill
                   className="object-contain"
                 />
+              </div>
+              {expanded && (
+                <div className="ml-3 opacity-100 transition-opacity duration-300">
+                  <h2 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-primary-500">
+                    OptiPlus
+                  </h2>
+                  <p className="text-xs text-gray-500">Optical Management</p>
+                </div>
               )}
             </div>
           </div>
@@ -168,35 +234,59 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Toggle Button */}
           <button
             onClick={handleToggleSidebar}
-            className="absolute -right-3 top-12 glass rounded-full p-1.5 hover:bg-white/30 transition-all md:hidden z-30"
+            className="absolute -right-3 top-16 bg-white rounded-full p-1.5 shadow-md hover:shadow-lg
+                      transition-all hidden lg:block z-30"
             aria-label="Toggle sidebar"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-5 w-5 text-primary-600 transition-transform duration-300 ${expanded ? "rotate-0" : "rotate-180"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            {expanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
           </button>
 
+          {/* User Profile Card */}
+          <div className={`px-4 pt-5 pb-3 ${!expanded && "text-center"}`}>
+            <div className={`flex ${expanded ? "items-start gap-3" : "flex-col items-center"}`}>
+              <div className="h-12 w-12 rounded-full glass flex items-center justify-center
+                           bg-gradient-to-br from-primary-100 to-primary-50 text-primary-700 
+                           font-bold shadow-sm border border-white/50">
+                {session?.user?.name?.[0].toUpperCase() || "S"}
+              </div>
+              
+              {expanded && (
+                <div className="flex flex-col">
+                  <span className="font-medium text-gray-800 line-clamp-1">
+                    {session?.user?.name || "Staff User"}
+                  </span>
+                  <span className="text-xs text-gray-500 line-clamp-1">
+                    {session?.user?.email || "staff@optiplus.com"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Navigation */}
-          <nav className="flex-1 py-6 px-3 overflow-y-auto backdrop-blur-sm bg-white/5">
-            <div className="space-y-2">
-              {navItems.map((item) => (
+          <nav className="flex-1 py-4 px-3 overflow-y-auto backdrop-blur-sm bg-white/5">
+            <div className="space-y-1">
+              <SidebarDivider label="Dashboard" expanded={expanded} />
+              {mainNavItems.map((item) => (
                 <NavItem
                   key={item.href}
                   href={item.href}
                   icon={item.icon}
                   label={item.label}
                   active={pathname === item.href}
+                  expanded={expanded}
+                />
+              ))}
+              
+              <SidebarDivider label="Administration" expanded={expanded} />
+              {adminNavItems.map((item) => (
+                <NavItem
+                  key={item.href}
+                  href={item.href}
+                  icon={item.icon}
+                  label={item.label}
+                  active={pathname === item.href}
+                  expanded={expanded}
                 />
               ))}
             </div>
@@ -206,13 +296,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="p-4 border-t border-white/10 backdrop-blur-sm bg-white/5">
             <button
               onClick={() => signOut({ callbackUrl: "/staff-login" })}
-              className="flex items-center gap-2 px-4 py-2.5 w-full text-left text-red-600 rounded-xl
-                        hover:bg-red-50/30 hover:backdrop-blur-sm transition-all duration-200"
+              className={`flex items-center gap-2.5 px-4 py-2.5 w-full ${expanded ? "justify-start" : "justify-center"}
+                        text-red-600 rounded-xl hover:bg-red-50/30 hover:backdrop-blur-sm
+                        transition-all duration-200`}
+              aria-label="Sign out"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V7.414l-4-4H3zm9 2.414L15.414 9H12V5.414z" clipRule="evenodd" />
-                <path d="M3 7.5a.5.5 0 01.5-.5h7a.5.5 0 010 1h-7a.5.5 0 01-.5-.5zm0 4a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3a.5.5 0 01-.5-.5z" />
-              </svg>
+              <LogOut size={20} />
               {expanded && <span className="font-medium">Sign Out</span>}
             </button>
           </div>
@@ -222,31 +311,78 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main Content */}
       <main
         className={`flex-1 transition-all duration-300 ${
-          expanded ? "ml-64" : "ml-16"
-        } md:ml-64 relative`}
+          expanded ? "lg:ml-64" : "lg:ml-20"
+        } ml-0 relative`}
       >
         {/* Top Header */}
         <header className={`sticky top-0 z-10 transition-all duration-300 ${
-          scrolled ? "backdrop-blur-glass shadow-glass" : "bg-transparent"
+          scrolled ? "backdrop-blur-md shadow-sm bg-white/70" : "bg-transparent"
         }`}>
-          <div className="flex justify-between items-center px-6 py-4">
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-primary-500">
-              {activeSection} • OptiPlus
-            </h1>
-            <div className="flex items-center gap-4">
-              <div className="text-right mr-2">
-                <div className="text-sm font-medium text-gray-900">{session?.user?.name || "Staff User"}</div>
-                <div className="text-xs text-gray-500">{session?.user?.email || "staff@optiplus.com"}</div>
+          <div className="flex justify-between items-center px-4 md:px-6 py-4">
+            <div className="flex items-center">
+              {/* Mobile menu button */}
+              <button 
+                onClick={handleMobileNavToggle}
+                className="p-2 mr-2 rounded-lg hover:bg-gray-100 lg:hidden"
+                aria-label="Toggle mobile menu"
+              >
+                {showMobileNav ? (
+                  <ChevronLeft size={24} />
+                ) : (
+                  <ChevronRight size={24} />
+                )}
+              </button>
+              
+              <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-primary-500">
+                {activeSection}
+              </h1>
+            </div>
+            
+            <div className="flex items-center gap-3 md:gap-6">
+              {/* Search Bar - Hidden on small screens */}
+              <div className="hidden md:flex items-center bg-white/80 rounded-lg px-3 py-1.5 shadow-sm border border-gray-100">
+                <Search size={16} className="text-gray-400 mr-2" />
+                <input 
+                  type="text" 
+                  placeholder="Quick search..." 
+                  className="bg-transparent border-none outline-none text-sm w-40 lg:w-48 placeholder-gray-400"
+                />
               </div>
-              <div className="h-10 w-10 rounded-full glass flex items-center justify-center text-primary-700 font-bold shadow-sm">
+              
+              {/* Notification Bell */}
+              <button className="relative p-2 text-gray-500 hover:text-primary-600 transition-colors rounded-full hover:bg-gray-100/50">
+                <Bell size={20} />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              </button>
+              
+              {/* User Profile - Mobile */}
+              <div className="md:hidden h-8 w-8 rounded-full glass flex items-center justify-center bg-primary-50 text-primary-700 font-bold">
                 {session?.user?.name?.[0].toUpperCase() || "S"}
               </div>
+              
+              {/* User Profile - Desktop */}
+              <div className="hidden md:flex items-center gap-2">
+                <div className="text-right">
+                  <div className="text-sm font-medium text-gray-900">{session?.user?.name || "Staff User"}</div>
+                  <div className="text-xs text-gray-500">{session?.user?.email || "staff@optiplus.com"}</div>
+                </div>
+                <div className="h-10 w-10 rounded-full glass flex items-center justify-center bg-primary-50 text-primary-700 font-bold shadow-sm">
+                  {session?.user?.name?.[0].toUpperCase() || "S"}
+                </div>
+              </div>
             </div>
+          </div>
+          
+          {/* Path indicator / breadcrumb */}
+          <div className="px-4 md:px-6 pb-2 flex items-center text-xs text-gray-500">
+            <span className="font-medium text-primary-600">OptiPlus</span>
+            <span className="mx-2">/</span>
+            <span>{activeSection}</span>
           </div>
         </header>
 
         {/* Page Content */}
-        <div className="p-6 animate-slideIn">
+        <div className="p-4 md:p-6 animate-slideIn">
           {children}
         </div>
       </main>

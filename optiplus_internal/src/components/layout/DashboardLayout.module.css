@@ -1,0 +1,101 @@
+/* Dashboard Layout Styles */
+.glassCard {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  }
+  
+  .sidebarTransition {
+    transition: width 0.3s ease, transform 0.3s ease;
+  }
+  
+  /* Animation keyframes */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideIn {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .animateFadeIn {
+    animation: fadeIn 0.4s ease forwards;
+  }
+  
+  .animateSlideIn {
+    animation: slideIn 0.4s ease forwards;
+  }
+  
+  /* Navigation item styles */
+  .navItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    color: var(--gray-600);
+  }
+  
+  .navItemActive {
+    background-color: rgba(var(--primary-100-rgb), 0.5);
+    color: var(--primary-800);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  
+  .navItemInactive:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+    color: var(--primary-700);
+  }
+  
+  /* Tooltip for collapsed nav items */
+  .navTooltip {
+    position: absolute;
+    left: 5rem;
+    z-index: 50;
+    transform-origin: left;
+    transform: scale(0);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    background-color: white;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    font-weight: 500;
+    transition: transform 0.15s ease;
+  }
+  
+  .navItem:hover .navTooltip {
+    transform: scale(1);
+  }
+  
+  /* Header styles */
+  .headerGlass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* User profile card */
+  .userProfileCard {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin: 1rem 0.75rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(to bottom right, rgba(var(--primary-50-rgb), 0.5), rgba(255, 255, 255, 0.7));
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Responsive utilities */
+  @media (max-width: 1024px) {
+    .sidebarMobile {
+      transform: translateX(-100%);
+    }
+    
+    .sidebarMobileOpen {
+      transform: translateX(0);
+    }
+  }

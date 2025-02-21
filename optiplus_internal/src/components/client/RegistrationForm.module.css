@@ -1,0 +1,218 @@
+/* Place this in: /home/davy/Desktop/O_S_M/optiplus_internal/src/components/client/RegistrationForm.module.css */
+
+.formContainer {
+    background: linear-gradient(to right bottom, #ffffff, #f9fafb);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease-in-out;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .formContainer:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .formHeader {
+    background: linear-gradient(to right, #1e40af, #3b82f6);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .formHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
+  
+  .formContent {
+    padding: 2rem;
+  }
+  
+  .inputGroup {
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  
+  .inputLabel {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    background-color: #fff;
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  }
+  
+  .input:hover:not(:focus) {
+    border-color: #9ca3af;
+  }
+  
+  .textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  .buttonContainer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2rem;
+  }
+  
+  .submitButton {
+    background: linear-gradient(to right, #1e40af, #3b82f6);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 0.375rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+  }
+  
+  .submitButton:hover:not(:disabled) {
+    background: linear-gradient(to right, #1e3a8a, #2563eb);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4);
+  }
+  
+  .submitButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .submitButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  }
+  
+  .successMessage {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border-left: 4px solid #10b981;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    border-radius: 0.375rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  .errorMessage {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    border-radius: 0.375rem;
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  .registrationNumber {
+    font-size: 1.1rem;
+    font-weight: 600;
+    background-color: #d1fae5;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    display: inline-block;
+    margin-top: 0.5rem;
+  }
+  
+  /* Required field indicator */
+  .required::after {
+    content: "*";
+    color: #ef4444;
+    margin-left: 0.25rem;
+  }
+  
+  /* Loading state animation */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .loadingSpinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .formContent {
+      padding: 1.5rem;
+    }
+    
+    .formHeader {
+      padding: 1.25rem 1.5rem;
+    }
+    
+    .submitButton {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  
+  /* Focus styling for accessibility */
+  .input:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 1px;
+  }
+  
+  /* Custom date input styling */
+  input[type="date"].input {
+    appearance: none;
+  }
+  
+  input[type="date"].input::-webkit-calendar-picker-indicator {
+    background-color: transparent;
+    cursor: pointer;
+    padding: 0.25rem;
+    opacity: 0.7;
+  }
+  
+  input[type="date"].input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }

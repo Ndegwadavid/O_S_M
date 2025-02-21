@@ -1,0 +1,319 @@
+/* Place this at: /home/davy/Desktop/O_S_M/optiplus_internal/src/app/(dashboard)/examination/ExaminationPage.module.css */
+
+.pageContainer {
+    min-height: 100vh;
+    background: linear-gradient(to bottom right, #ebf4ff, #e0e7ff);
+    padding: 1.5rem;
+  }
+  
+  .pageTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e40af;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  
+  .filterContainer {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .filterButton {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .filterButtonAll {
+    background-color: #4f46e5;
+    color: white;
+  }
+  
+  .filterButtonPending {
+    background-color: #d97706;
+    color: white;
+  }
+  
+  .filterButtonCompleted {
+    background-color: #059669;
+    color: white;
+  }
+  
+  .filterButtonInactive {
+    background-color: #e5e7eb;
+    color: #4b5563;
+  }
+  
+  .searchInput {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #d1d5db;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+  
+  .searchInput:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+  }
+  
+  .clientGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .clientCard {
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .clientCardCompleted {
+    border: 2px solid #10b981;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .clientCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .clientHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+  
+  .clientName {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+  }
+  
+  .clientDetail {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 0.25rem;
+  }
+  
+  .clientDate {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  
+  .statusBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  
+  .statusBadgeCompleted {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+  
+  .statusBadgePending {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+  
+  .completedIcon {
+    display: flex;
+    align-items: center;
+    color: #10b981;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+  
+  .examinationForm {
+    margin-top: 2rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .formTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.75rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 1rem;
+  }
+  
+  .prescriptionTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+  }
+  
+  .tableHead {
+    background-color: #e0e7ff;
+  }
+  
+  .tableHeader {
+    padding: 0.75rem;
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e40af;
+  }
+  
+  .tableCell {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .eyeLabel {
+    font-weight: 500;
+    color: #4b5563;
+  }
+  
+  .inputField {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+  
+  .inputField:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  }
+  
+  .textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    resize: vertical;
+    min-height: 100px;
+    background-color: rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+  }
+  
+  .textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  }
+  
+  .formLabel {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .saveButton {
+    padding: 0.75rem 1.5rem;
+    background-color: #4f46e5;
+    color: white;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .saveButton:hover:not(:disabled) {
+    background-color: #4338ca;
+    transform: translateY(-1px);
+  }
+  
+  .saveButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .cancelButton {
+    padding: 0.75rem 1.5rem;
+    background-color: #e5e7eb;
+    color: #4b5563;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .cancelButton:hover {
+    background-color: #d1d5db;
+  }
+  
+  .successMessage {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #d1fae5;
+    border-left: 4px solid #10b981;
+    border-radius: 0.5rem;
+    color: #065f46;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @media (min-width: 640px) {
+    .searchInput {
+      width: 50%;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .searchInput {
+      width: 33.333333%;
+    }
+  }
