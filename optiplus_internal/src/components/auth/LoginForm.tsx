@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import styles from "./LoginForm.module.css";
 
 interface LoginFormProps {
   userType: "staff" | "admin";
@@ -31,7 +33,6 @@ export default function LoginForm({ userType }: LoginFormProps) {
         return;
       }
 
-      // Redirect based on user type
       if (userType === "admin") {
         router.push("/admin");
       } else {
@@ -45,27 +46,29 @@ export default function LoginForm({ userType }: LoginFormProps) {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            OptiPlus Internal
-          </h1>
-          <h2 className="mt-2 text-xl font-medium text-gray-700">
+    <div className={styles.container}>
+      <div className={styles.overlay}></div>
+      <div className={styles.formWrapper}>
+        <Image
+          src="/logo.png"
+          alt="OptiPlus Logo"
+          width={130}
+          height={130}
+          className={styles.logo}
+        />
+        <div>
+          <h1 className={styles.title}>OptiPlus Management</h1>
+          <h2 className={styles.subtitle}>
             {userType === "admin" ? "Admin Login" : "Staff Login"}
           </h2>
         </div>
-        
-        {error && (
-          <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">
-            {error}
-          </div>
-        )}
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-              Username
+
+        {error && <div className={styles.error}>{error}</div>}
+
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.inputGroup}>
+            <label htmlFor="username" className={styles.label}>
+              Staff
             </label>
             <input
               id="username"
@@ -74,12 +77,13 @@ export default function LoginForm({ userType }: LoginFormProps) {
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className={styles.input}
+              placeholder="Enter name"
             />
           </div>
-          
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+
+          <div className={styles.inputGroup}>
+            <label htmlFor="password" className={styles.label}>
               Password
             </label>
             <input
@@ -89,19 +93,18 @@ export default function LoginForm({ userType }: LoginFormProps) {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className={styles.input}
+              placeholder="Enter password"
             />
           </div>
-          
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {loading ? "Logging in..." : "Sign In"}
-            </button>
-          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={styles.button}
+          >
+            {loading ? "Logging in..." : "Sign In"}
+          </button>
         </form>
       </div>
     </div>
