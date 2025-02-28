@@ -1,5 +1,19 @@
 /* Place this in: /home/davy/Desktop/O_S_M/optiplus_internal/src/components/client/RegistrationForm.module.css */
-
+.prefix {
+  background-color: #f1f5f9;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  display: flex;
+  align-items: center;
+}
+.input {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+}
+.input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
 .formContainer {
     background: linear-gradient(to right bottom, #ffffff, #f9fafb);
     border-radius: 0.75rem;

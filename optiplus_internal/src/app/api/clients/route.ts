@@ -1,4 +1,12 @@
 import pool from "@/lib/db";
+import AfricasTalking from "africastalking";
+
+// Initialize Africa's Talking
+const africasTalking = AfricasTalking({
+  apiKey: process.env.AFRICASTALKING_API_KEY,
+  username: process.env.AFRICASTALKING_USERNAME,
+});
+const sms = africasTalking.SMS;
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -68,13 +76,35 @@ export async function POST(req: Request) {
       ]
     );
 
-    return new Response(JSON.stringify({ 
-      registrationNumber, 
-      id: (result as any).insertId, 
-      message: "Client registered successfully" 
-    }), { status: 200 });
+    // Send SMS with detailed logging
+    const message = `Hello ${clientData.firstName}, thank you for visiting OptiPlus. Your reference number is ${registrationNumber}. Visit our website at optiplus.co.ke`;
+    console.log("Sending SMS to:", clientData.phoneNumber);
+    console.log("SMS message:", message);
+    try {
+      const smsResponse = await sms.send({
+        to: [clientData.phoneNumber],
+        message: message,
+        from: "OptiPlus",
+      });
+      console.log("SMS response:", JSON.stringify(smsResponse, null, 2));
+    } catch (smsError) {
+      console.error("SMS sending failed:", smsError);
+      // Don't fail the whole request, just log the SMS issue
+    }
+
+    return new Response(
+      JSON.stringify({
+        registrationNumber,
+        id: (result as any).insertId,
+        message: "Client registered successfully",
+      }),
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error registering client:", error);
-    return new Response(JSON.stringify({ error: "Failed to save client" }), { status: 500 });
+    return new Response(
+      JSON.stringify({ error: "Failed to save client", details: error.message }),
+      { status: 500 }
+    );
   }
 }

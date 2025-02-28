@@ -22,7 +22,7 @@ interface Sale {
   framesAmount: number;
   lensesBrand: string;
   lensesModel: string;
-  lensesColor: string;
+  lensesType: string; // Changed from lensesColor to lensesType (assuming intent)
   lensesQuantity: number;
   lensesAmount: number;
   totalAmount: number;
@@ -41,7 +41,7 @@ export default function ClientSalesOrderPage() {
   const [client, setClient] = useState<Client | null>(null);
   const [sale, setSale] = useState<Sale>({
     framesBrand: "", framesModel: "", framesColor: "", framesQuantity: 1, framesAmount: 0,
-    lensesBrand: "", lensesModel: "", lensesColor: "", lensesQuantity: 1, lensesAmount: 0,
+    lensesBrand: "", lensesModel: "", lensesType: "", lensesQuantity: 1, lensesAmount: 0,
     totalAmount: 0, advancePaid: 0, balance: 0, fittingInstructions: "", orderBookedBy: "", deliveryDate: "", referenceNumber: `SO-${Date.now()}`,
   });
   const [successMessage, setSuccessMessage] = useState("");
@@ -82,6 +82,7 @@ export default function ClientSalesOrderPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Save sales order
       const response = await fetch("/api/sales-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,10 +95,27 @@ export default function ClientSalesOrderPage() {
 
       if (!response.ok) throw new Error("Failed to save sales order");
 
-      setSuccessMessage("Sales order saved successfully!");
-      setTimeout(() => setSuccessMessage(""), 5000); // Auto-hide after 5 seconds
+      // Send SMS via Twilio
+      const smsResponse = await fetch("/api/send-sms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: client.phoneNumber,
+          message: `Hello ${client.firstName}, your sales order (${sale.referenceNumber}) has been placed. Total: $${sale.totalAmount}, Balance: $${sale.balance}. Delivery expected by ${sale.deliveryDate || "TBD"}. Visit optiplus.co.ke.`,
+        }),
+      });
+
+      if (!smsResponse.ok) {
+        console.error("SMS failed:", await smsResponse.text());
+      } else {
+        console.log("SMS sent successfully");
+      }
+
+      setSuccessMessage("Sales order saved successfully! SMS sent to client.");
+      setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
       setSuccessMessage("Error saving sales order. Please try again.");
+      console.error("Save error:", error);
     } finally {
       setIsSaving(false);
     }
@@ -108,10 +126,8 @@ export default function ClientSalesOrderPage() {
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Sales Order for {client.firstName} {client.lastName}</h1>
 
-        {/* Sales Form */}
         <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-glass p-6">
           <div className="space-y-6">
-            {/* Frames */}
             <div>
               <h3 className="text-lg font-semibold text-gray-700 mb-2">Frames</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -123,32 +139,28 @@ export default function ClientSalesOrderPage() {
               </div>
             </div>
 
-            {/* Lenses */}
             <div>
               <h3 className="text-lg font-semibold text-gray-700 mb-2">Lenses</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="text" name="lensesBrand" value={sale.lensesBrand} onChange={handleSaleChange} placeholder="Brand" className="p-2 border border-gray-300 rounded-lg" />
                 <input type="text" name="lensesModel" value={sale.lensesModel} onChange={handleSaleChange} placeholder="Model" className="p-2 border border-gray-300 rounded-lg" />
-                <input type="text" name="lensesColor" value={sale.lensesColor} onChange={handleSaleChange} placeholder="Color" className="p-2 border border-gray-300 rounded-lg" />
+                <input type="text" name="lensesType" value={sale.lensesType} onChange={handleSaleChange} placeholder="Type" className="p-2 border border-gray-300 rounded-lg" />
                 <input type="number" name="lensesQuantity" value={sale.lensesQuantity} onChange={handleSaleChange} min="1" className="p-2 border border-gray-300 rounded-lg" />
                 <input type="number" name="lensesAmount" value={sale.lensesAmount} onChange={handleSaleChange} placeholder="Amount ($)" className="p-2 border border-gray-300 rounded-lg" />
               </div>
             </div>
 
-            {/* Totals and Payments */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <input type="number" name="totalAmount" value={sale.totalAmount} readOnly className="p-2 border border-gray-300 rounded-lg bg-gray-100" placeholder="Total Amount ($)" />
               <input type="number" name="advancePaid" value={sale.advancePaid} onChange={handleSaleChange} placeholder="Advance Paid ($)" className="p-2 border border-gray-300 rounded-lg" />
               <input type="number" name="balance" value={sale.balance} readOnly className="p-2 border border-gray-300 rounded-lg bg-gray-100" placeholder="Balance ($)" />
             </div>
 
-            {/* Additional Fields */}
             <textarea name="fittingInstructions" value={sale.fittingInstructions} onChange={handleSaleChange} placeholder="Fitting Instructions" className="w-full p-2 border border-gray-300 rounded-lg" rows={3}></textarea>
             <input type="text" name="orderBookedBy" value={sale.orderBookedBy} onChange={handleSaleChange} placeholder="Order Booked By" className="p-2 border border-gray-300 rounded-lg" />
             <input type="date" name="deliveryDate" value={sale.deliveryDate} onChange={handleSaleChange} className="p-2 border border-gray-300 rounded-lg" />
             <input type="text" name="referenceNumber" value={sale.referenceNumber} readOnly className="p-2 border border-gray-300 rounded-lg bg-gray-100" placeholder="Reference Number" />
 
-            {/* Actions */}
             <div className="flex justify-end">
               <button
                 onClick={handleSave}
